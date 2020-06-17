@@ -2,23 +2,24 @@ use enigo::*;
 use rand::thread_rng;
 use rand::seq::SliceRandom;
 
-const FIELD_SIZE: (usize, usize) = (6, 5);
+use super::conf;
+
 
 const COLLAPSE: usize = 3;
 
 pub struct Bot {
     enigo: Enigo,
-    screen_config: ScreenConfig,
-    field: [[usize; FIELD_SIZE.1]; FIELD_SIZE.0],
+    config: conf::Config,
+    pub field: [[usize; conf::FIELD_SIZE.1]; conf::FIELD_SIZE.0],
     pub tasks: Vec<[usize; 2]> //TODO: Make private in future, move fyll cycle to this module
 }
 
 impl Bot {
-    pub fn new(screen_config: ScreenConfig) -> Self {
+    pub fn new(config: conf::Config) -> Self {
         Bot {
             enigo: Enigo::new(),
-            screen_config: screen_config,
-            field: [[0; FIELD_SIZE.1]; FIELD_SIZE.0],
+            config: config,
+            field: [[0; conf::FIELD_SIZE.1]; conf::FIELD_SIZE.0],
             tasks: Vec::new()
         }
     }
@@ -36,6 +37,8 @@ impl Bot {
         //TODO: Return result
     }
 
+    // TODO: Remove this method if it's not needed in future
+    #[allow(dead_code)]
     fn count_adjustent_type(&self, level: usize, coords: [usize; 2], checked: &mut Vec<[usize; 2]>) ->u32 {
         checked.push(coords);
         let mut counted: u32 = 0;
@@ -53,7 +56,7 @@ impl Bot {
     }
 
     pub fn place_ore(&mut self, x: usize , y: usize) {
-        let coords = self.screen_config.to_screen([x, y]);
+        let coords = self.config.to_screen([x, y]);
         self.enigo.mouse_move_to(coords[0], coords[1]);
         self.enigo.mouse_click(MouseButton::Left);
     }
@@ -149,22 +152,3 @@ fn adjustent_tiles(c: [usize; 2]) -> [Option<[usize; 2]>; 4] {
 // ================================================================================
 
 
-pub struct ScreenConfig {
-    cell_size: f32,
-    zero_point: [f32; 2]
-}
-
-impl ScreenConfig {
-    pub fn default() -> Self {
-        ScreenConfig {
-            cell_size: 75.0,
-            zero_point: [0.0, 413.0]
-        }
-    }
-    fn to_screen(&self, from: [usize; 2]) -> [i32; 2] {
-        return [
-            (self.zero_point[0] + (from[0] as f32 + 0.5) * self.cell_size) as i32,
-            (self.zero_point[1] + (from[1] as f32 + 0.5) * self.cell_size) as i32
-        ];
-    }
-}
